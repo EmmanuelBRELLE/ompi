@@ -13,6 +13,13 @@
 /**
  * @file
  *
+ * This file provides information about current run rank mapping in the shape
+ * of a integer array where each rank will provides a set of contiguous integer :
+ * its rank and its location at the different topological levels (from the
+ * highest to the lowest).
+ * At the end, the order for these data chunks uses the topological level as keys:
+ * the ranks are sorted first by the top level, then by the next level, ... etc.
+ *
  * Warning: this is not for the faint of heart -- don't even bother
  * reading this source code if you don't have a strong understanding
  * of nested data structures and pointer math (remember that
@@ -117,7 +124,7 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
 
         /* is the distribution of processes balanced per node? */
         is_imbalanced = (reduce_vals[2] == -reduce_vals[3]) ? 0 : 1;
-        ranks_consecutive = (reduce_vals[0] == -reduce_vals[1]) ? 1 : 0;
+        ranks_consecutive = -reduce_vals[1];
 
         if ( !ranks_consecutive && !is_imbalanced ) {
             /* kick off up_comm allgather to collect non-consecutive rank information at node leaders */
@@ -156,6 +163,7 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
         }
         han_module->is_mapbycore = true;
     } else {
+        han_module->is_mapbycore = false;
         /*
          * Slow path: gather global-to-node-local rank mappings at node leaders
          *
@@ -192,4 +200,3 @@ mca_coll_han_topo_init(struct ompi_communicator_t *comm,
 
     return topo;
 }
-
